@@ -18,18 +18,27 @@ func init() {
 // it fails and exits the program when the args are invalid.
 func ParseCMD(TFMT string) (string, string, time.Time) {
 	if len(os.Args) != 3 {
-		log.Fatalf("should provide with 2 args, called by %v", os.Args)
+		log.Fatalf("should provide with 2 args, calling args: %v\n", os.Args)
 	}
 	startStr, endStr := os.Args[1], os.Args[2]
 	start, err := time.Parse(TFMT, startStr)
 	if err != nil {
-		log.Fatalf("%s is not a valid RFC3339 timestamp", startStr)
+		log.Fatalf("input invalid: start(%s) is not a valid RFC3339 timestamp\n", startStr)
 	}
-	_, err = time.Parse(TFMT, endStr)
+	end, err := time.Parse(TFMT, endStr)
 	if err != nil {
-		log.Fatalf("%s is not a valid RFC3339 timestamp", endStr)
+		log.Fatalf("input invalid: end(%s) is not a valid RFC3339 timestamp\n", endStr)
 	}
-	return startStr, endStr, start
+
+	if start.After(end) {
+		log.Fatalf("input invalid: start(%s) timestamp is after end(%s)\n", startStr, endStr)
+	}
+
+	if start.Minute() != 0 || start.Second() != 0 || end.Minute() != 0 || end.Second() != 0 {
+		log.Fatalf("input invalid: start(%s) and end(%s) should be hourly, their minutes and seconds must all be 0\n", startStr, endStr)
+	}
+	end = end.Add(59*time.Second + 59*time.Minute) // add 00:59:59
+	return startStr, end.Format(TFMT), start
 }
 
 // ReadLine reads a line of data, returns it(without the \n) and a bool value whether the buffer is empty,
