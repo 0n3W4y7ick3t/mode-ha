@@ -3,23 +3,23 @@ package solver
 import (
 	"bufio"
 	"fmt"
-	"net/http"
+	"io"
 	"time"
 
 	"mode-ha/parser"
 )
 
-// Solve uses a sized buffer to read from response, one line at a time,
+// Solve uses a sized buffer to read from reader, one line at a time,
 // calculated the results and print them.
-// it does not close the response body.
-func Solve(resp *http.Response, start time.Time, TFMT string) {
+// it does not close the reader
+func Solve(reader io.Reader, start time.Time, TFMT string) {
 	sum := 0.0                           // accumulates the numbers
 	counter := 0                         // lines of data we accumulated in hbucket hour
 	hbucket := start.Truncate(time.Hour) // current hourly bucket
 
-	reader := bufio.NewReader(resp.Body) // default sized buffer
+	bufReader := bufio.NewReader(reader) // default sized buffer
 	for {
-		line, ended := parser.ReadLine(reader)
+		line, ended := parser.ReadLine(bufReader)
 		if ended {
 			// if we still have data left
 			if counter > 0 {

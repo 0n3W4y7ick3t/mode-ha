@@ -28,5 +28,9 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	solver.Solve(resp, start, TIME_FMT)
+	if resp.StatusCode == http.StatusOK {
+		solver.Solve(resp.Body, start, TIME_FMT)
+	} else {
+		log.Fatalf("response not OK: %v\n", resp.StatusCode)
+	}
 }
